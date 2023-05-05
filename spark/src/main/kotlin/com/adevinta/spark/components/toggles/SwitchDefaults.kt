@@ -66,8 +66,8 @@ public object SwitchDefaults {
         disabledUncheckedThumbColor = disabledUncheckedThumbColor,
         disabledUncheckedTrackColor = disabledUncheckedTrackColor,
         disabledUncheckedBorderColor = disabledUncheckedBorderColor,
-        disabledUncheckedIconColor = disabledUncheckedIconColor,
+        disabledUncheckedIconColor = disabledUncheckedIconColor
     )
 
-
+    public val icons: SwitchIcons = SwitchIcons()
 }

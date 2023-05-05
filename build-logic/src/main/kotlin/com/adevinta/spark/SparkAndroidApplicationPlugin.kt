@@ -42,9 +42,9 @@ internal class SparkAndroidApplicationPlugin : Plugin<Project> {
                 }
                 buildTypes {
                     release {
-                        signingConfig = signingConfigs["debug"]
                         isMinifyEnabled = true
                         isShrinkResources = true
+                        signingConfig = signingConfigs["debug"]
                         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
                     }
                 }

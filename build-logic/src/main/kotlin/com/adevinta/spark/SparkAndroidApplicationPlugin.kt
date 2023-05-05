@@ -41,7 +41,8 @@ internal class SparkAndroidApplicationPlugin : Plugin<Project> {
                 }
                 buildTypes {
                     release {
-                        isMinifyEnabled = false
+                        isMinifyEnabled = true
+                        isShrinkResources = true
                         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
                     }
                 }

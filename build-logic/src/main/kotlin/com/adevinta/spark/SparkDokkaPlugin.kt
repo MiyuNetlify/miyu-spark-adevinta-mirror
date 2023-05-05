@@ -52,7 +52,7 @@ internal class SparkDokkaPlugin : Plugin<Project> {
                 moduleName.set("Spark")
                 dokkaSourceSets.configureEach {
                     // List of files or directories containing sample code (referenced with @sample tags)
-                    // samples.from("samples/basic.kt", "samples/advanced.kt")
+                     samples.from(project.files())
                 }
             }
 

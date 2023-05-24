@@ -30,6 +30,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
@@ -75,9 +76,15 @@ internal fun Project.configureKotlinCompiler(
 
 internal inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin(
     crossinline configure: T.() -> Unit = {},
-): Unit = configure<T> {
-    explicitApi()
-    configure()
+) {
+    configure<JavaPluginExtension> {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    configure<T> {
+        explicitApi()
+        configure()
+    }
 }
 
 internal fun <T> Project.getOrCreateExtra(

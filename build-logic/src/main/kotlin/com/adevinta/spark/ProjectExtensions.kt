@@ -26,6 +26,7 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.dsl.TestExtension
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -67,12 +68,14 @@ internal fun Project.configureKotlinCompiler(
         freeCompilerArgs.add("-Xexplicit-api=strict")
         configure()
     }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11.toString()
+    }
 }
 
 internal inline fun <reified T : KotlinTopLevelExtension> Project.configureKotlin(
     crossinline configure: T.() -> Unit = {},
 ): Unit = configure<T> {
-    jvmToolchain(17)
     explicitApi()
     configure()
 }

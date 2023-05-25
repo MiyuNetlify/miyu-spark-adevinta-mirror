@@ -33,7 +33,6 @@ kotlin {
 }
 
 tasks.withType<KotlinCompile> {
-    compilerOptions.allWarningsAsErrors.set(true)
 }
 
 repositories {

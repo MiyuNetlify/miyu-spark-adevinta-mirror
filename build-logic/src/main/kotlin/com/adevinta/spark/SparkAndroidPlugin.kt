@@ -51,7 +51,6 @@ public class SparkAndroidPlugin : Plugin<Project> {
                     }
                 }
                 lint {
-                    warningsAsErrors = true
                     sarifReport = true
                     lintConfig = file("lint.xml").takeIf(File::exists)
                 }

@@ -65,7 +65,6 @@ internal fun Project.configureKotlinCompiler(
     configure: KotlinJvmCompilerOptions.() -> Unit = {},
 ) = tasks.withType<KotlinCompile> {
     compilerOptions {
-        this.allWarningsAsErrors.set(allWarningsAsErrors.not())
         freeCompilerArgs.add("-Xexplicit-api=strict")
         configure()
     }

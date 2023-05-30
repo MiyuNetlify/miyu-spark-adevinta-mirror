@@ -20,12 +20,13 @@
  * SOFTWARE.
  */
 
-package com.adevinta.spark.catalog.component
+package com.adevinta.spark.catalog.examples.component
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,9 +37,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.adevinta.spark.catalog.R
-import com.adevinta.spark.catalog.example.ExampleItem
-import com.adevinta.spark.catalog.model.Component
-import com.adevinta.spark.catalog.model.Example
+import com.adevinta.spark.catalog.examples.example.ExampleItem
+import com.adevinta.spark.catalog.examples.model.Component
+import com.adevinta.spark.catalog.examples.model.Example
 import com.adevinta.spark.components.text.Text
 import com.adevinta.spark.tokens.Layout
 
@@ -51,10 +52,12 @@ public fun Component(
 ) {
     val ltr = LocalLayoutDirection.current
     LazyColumn(
-        modifier = Modifier.consumeWindowInsets(contentPadding),
+        modifier = Modifier
+            .fillMaxSize()
+            .consumeWindowInsets(contentPadding),
         contentPadding = PaddingValues(
-            start = Layout.bodyMargin / 2 + contentPadding.calculateLeftPadding(ltr),
-            end = Layout.bodyMargin / 2 + contentPadding.calculateRightPadding(ltr),
+            start = Layout.bodyMargin + contentPadding.calculateLeftPadding(ltr),
+            end = Layout.bodyMargin + contentPadding.calculateRightPadding(ltr),
             top = contentPadding.calculateTopPadding(),
             bottom = contentPadding.calculateBottomPadding(),
         ),

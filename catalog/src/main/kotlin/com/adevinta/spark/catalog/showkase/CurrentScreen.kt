@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.adevinta.spark.catalog
+package com.adevinta.spark.catalog.showkase
 
 import androidx.compose.runtime.MutableState
 

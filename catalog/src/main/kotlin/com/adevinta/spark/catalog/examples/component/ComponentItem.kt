@@ -20,19 +20,13 @@
  * SOFTWARE.
  */
 
-package com.adevinta.spark.catalog.example
+package com.adevinta.spark.catalog.examples.component
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -40,39 +34,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.adevinta.spark.catalog.model.Example
+import com.adevinta.spark.catalog.examples.model.Component
+import com.adevinta.spark.tokens.Layout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-public fun ExampleItem(
-    example: Example,
-    onClick: (example: Example) -> Unit,
+public fun ComponentItem(
+    component: Component,
+    onClick: (component: Component) -> Unit,
 ) {
     OutlinedCard(
-        onClick = { onClick(example) },
-        modifier = Modifier.fillMaxWidth(),
+        onClick = { onClick(component) },
+        modifier = Modifier
+            .height(ComponentItemHeight)
+            .padding(
+                horizontal = Layout.bodyMargin / 2,
+                vertical = Layout.gutter,
+            ),
     ) {
-        Row(modifier = Modifier.padding(ExampleItemPadding)) {
-            Column(modifier = Modifier.weight(1f, fill = true)) {
-                Text(
-                    text = example.name,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Spacer(modifier = Modifier.height(ExampleItemTextPadding))
-                Text(
-                    text = example.description,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            Spacer(modifier = Modifier.width(ExampleItemPadding))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.CenterVertically),
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(ComponentItemInnerPadding),
+        ) {
+            Text(
+                text = component.name,
+                modifier = Modifier.align(Alignment.BottomStart),
+                style = MaterialTheme.typography.bodySmall,
             )
         }
     }
 }
 
-private val ExampleItemPadding = 16.dp
-private val ExampleItemTextPadding = 8.dp
+private val ComponentItemHeight = 180.dp
+private val ComponentItemInnerPadding = 16.dp

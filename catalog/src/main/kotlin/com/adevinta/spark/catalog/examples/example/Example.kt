@@ -20,48 +20,34 @@
  * SOFTWARE.
  */
 
-package com.adevinta.spark.catalog.component
+package com.adevinta.spark.catalog.examples.example
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.adevinta.spark.catalog.model.Component
+import com.adevinta.spark.catalog.examples.model.Example
+import com.adevinta.spark.tokens.Layout
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-public fun ComponentItem(
-    component: Component,
-    onClick: (component: Component) -> Unit,
+public fun Example(
+    example: Example,
+    contentPadding: PaddingValues,
 ) {
-    OutlinedCard(
-        onClick = { onClick(component) },
+    Box(
         modifier = Modifier
-            .height(ComponentItemHeight)
-            .padding(ComponentItemOuterPadding),
+            .fillMaxSize()
+            .consumeWindowInsets(WindowInsets.safeDrawing)
+            .padding(contentPadding)
+            .padding(horizontal = Layout.bodyMargin),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(ComponentItemInnerPadding),
-        ) {
-            Text(
-                text = component.name,
-                modifier = Modifier.align(Alignment.BottomStart),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
+        example.content()
     }
 }
-
-private val ComponentItemHeight = 180.dp
-private val ComponentItemOuterPadding = 4.dp
-private val ComponentItemInnerPadding = 16.dp

@@ -22,49 +22,50 @@
 
 package com.adevinta.spark.catalog
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.adevinta.spark.ExperimentalSparkApi
 import com.adevinta.spark.SparkTheme
-import com.adevinta.spark.catalog.component.Component
-import com.adevinta.spark.catalog.example.Example
-import com.adevinta.spark.catalog.model.Component
+import com.adevinta.spark.catalog.backdrop.BackdropScaffold
+import com.adevinta.spark.catalog.backdrop.BackdropScaffoldDefaults
+import com.adevinta.spark.catalog.backdrop.BackdropValue
+import com.adevinta.spark.catalog.backdrop.rememberBackdropScaffoldState
+import com.adevinta.spark.catalog.examples.ComponentsScreen
+import com.adevinta.spark.catalog.examples.model.Component
+import com.adevinta.spark.catalog.showkase.ShowkaseBrowserScreenMetadata
+import com.adevinta.spark.catalog.showkase.navGraph
+import com.adevinta.spark.catalog.tabbar.CatalogTabBar
+import com.adevinta.spark.catalog.tabbar.CatalogTabs
 import com.adevinta.spark.catalog.themes.BrandMode
 import com.adevinta.spark.catalog.themes.FontScaleMode
 import com.adevinta.spark.catalog.themes.TextDirection
@@ -75,23 +76,12 @@ import com.adevinta.spark.catalog.themes.UserMode
 import com.adevinta.spark.catalog.themes.themeprovider.ThemeProvider
 import com.adevinta.spark.catalog.themes.themeprovider.leboncoin.LeBoncoinTheme
 import com.adevinta.spark.catalog.themes.themeprovider.polaris.PolarisTheme
-import com.adevinta.spark.components.appbar.TopAppBar
-import com.adevinta.spark.components.bottomsheet.ModalBottomSheetLayout
-import com.adevinta.spark.components.bottomsheet.ModalBottomSheetValue
-import com.adevinta.spark.components.bottomsheet.rememberModalBottomSheetState
-import com.adevinta.spark.components.icons.Icon
-import com.adevinta.spark.components.icons.IconButton
-import com.adevinta.spark.components.scaffold.Scaffold
 import com.adevinta.spark.components.text.Text
-import com.adevinta.spark.components.textfields.TextField
-import com.adevinta.spark.icons.SparkIcon
 import com.airbnb.android.showkase.models.ShowkaseBrowserComponent
-import com.airbnb.android.showkase.ui.SemanticsUtils.lineCountVal
-import com.airbnb.android.showkase.ui.ToolbarTitle
 import com.google.accompanist.testharness.TestHarness
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 internal fun CatalogApp(
     theme: Theme,
@@ -128,6 +118,7 @@ internal fun CatalogApp(
         }
 
         TestHarness(
+            darkMode = useDark,
             layoutDirection = layoutDirection,
             fontScale = if (theme.fontScaleMode == FontScaleMode.System) {
                 LocalDensity.current.fontScale
@@ -135,13 +126,33 @@ internal fun CatalogApp(
                 theme.fontScale
             },
         ) {
-            val navController = rememberNavController()
-            val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             val coroutineScope = rememberCoroutineScope()
-            val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
-            ModalBottomSheetLayout(
-                sheetState = sheetState,
-                sheetContent = {
+            val homeScreenValues = CatalogHomeScreen.values()
+            val pagerState = rememberPagerState(initialPage = CatalogHomeScreen.Exemples.ordinal)
+
+            BackdropScaffold(
+                scaffoldState = rememberBackdropScaffoldState(BackdropValue.Concealed),
+                frontLayerScrimColor = Color.Unspecified,
+                headerHeight = BackdropScaffoldDefaults.HeaderHeight + WindowInsets.navigationBars.asPaddingValues()
+                    .calculateBottomPadding(),
+                peekHeight = BackdropScaffoldDefaults.PeekHeight + WindowInsets.statusBars.asPaddingValues()
+                    .calculateTopPadding(),
+                backLayerBackgroundColor = SparkTheme.colors.primaryContainer,
+                appBar = {
+                    HomeTabBar(
+                        modifier = Modifier.statusBarsPadding(),
+                        tabSelected = homeScreenValues[pagerState.currentPage],
+                        onTabSelected = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(
+                                    it.ordinal,
+                                    animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing),
+                                )
+                            }
+                        },
+                    )
+                },
+                backLayerContent = {
                     ThemePicker(
                         theme = theme,
                         onThemeChange = { theme ->
@@ -151,241 +162,73 @@ internal fun CatalogApp(
                         },
                     )
                 },
-                // Default scrim color is onSurface which is incorrect in dark theme
-                // https://issuetracker.google.com/issues/183697056
-                scrimColor = SheetScrimColor,
-            ) {
-                Scaffold(
-                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        AppBar(
-                            navController = navController,
-                            scrollBehavior = scrollBehavior,
-                            metadata = showkaseBrowserScreenMetadata,
-                            onThemeClick = { coroutineScope.launch { sheetState.show() } },
-                        )
-                    },
-                    content = {
-                        BodyContent(
-                            contentPadding = it,
-                            navController = navController,
-                            components = components,
-                            groupedComponentMap = groupedComponentMap,
-                            showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
-                        )
-                    },
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSparkApi::class)
-@Composable
-internal fun AppBar(
-    navController: NavHostController,
-    scrollBehavior: TopAppBarScrollBehavior,
-    metadata: MutableState<ShowkaseBrowserScreenMetadata>,
-    onThemeClick: () -> Unit = {},
-) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    TopAppBar(
-        scrollBehavior = scrollBehavior,
-        title = {
-            SampleAppBarTitle(
-                isSearchActive = metadata.value.isSearchActive,
-                group = metadata.value.currentGroup,
-                componentName = metadata.value.currentComponentName,
-                componentStyleName = metadata.value.currentComponentStyleName,
-                route = currentRoute,
-                searchQuery = metadata.value.searchQuery,
-                searchQueryValueChange = {
-                    metadata.value =
-                        metadata.value.copy(searchQuery = it)
-                },
-                onCloseSearchFieldClick = {
-                    metadata.value =
-                        metadata.value.copy(isSearchActive = false)
-                },
-                onClearSearchField = {
-                    metadata.value =
-                        metadata.value.copy(searchQuery = "")
-                },
-            )
-        },
-        actions = {
-            ShowkaseAppBarActions(
-                metadata = metadata,
-                currentRoute = currentRoute,
-                onThemeClick = onThemeClick,
-            )
-        },
-    )
-}
-
-@Suppress("LongParameterList")
-@Composable
-private fun SampleAppBarTitle(
-    isSearchActive: Boolean,
-    group: String?,
-    componentName: String?,
-    componentStyleName: String?,
-    route: String?,
-    searchQuery: String?,
-    searchQueryValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onCloseSearchFieldClick: () -> Unit,
-    onClearSearchField: () -> Unit,
-) {
-
-    AnimatedVisibility(
-        visible = isSearchActive,
-        enter = expandHorizontally(),
-        exit = shrinkHorizontally(),
-    ) {
-        SearchField(
-            searchQuery = searchQuery,
-            searchQueryValueChange = searchQueryValueChange,
-            onCloseSearchFieldClick = onCloseSearchFieldClick,
-            onClearSearchField = onClearSearchField,
-        )
-    }
-    AnimatedVisibility(
-        visible = !isSearchActive,
-        enter = slideInHorizontally() + expandIn(),
-    ) {
-        AppBarTitle(
-            currentRoute = route,
-            modifier = modifier,
-            currentGroup = group,
-            currentComponentName = componentName,
-            currentComponentStyleName = componentStyleName,
-        )
-    }
-}
-
-@Composable
-private fun AppBarTitle(
-    modifier: Modifier,
-    currentRoute: String?,
-    currentGroup: String?,
-    currentComponentName: String?,
-    currentComponentStyleName: String?,
-) {
-    when {
-
-        currentRoute == CurrentScreen.COMPONENT_GROUPS.name -> {
-            ToolbarTitle(stringResource(R.string.components_category), modifier)
-        }
-
-        currentRoute.insideGroup() -> {
-            ToolbarTitle(currentGroup ?: "currentGroup", modifier)
-        }
-
-        currentRoute == CurrentScreen.COMPONENT_STYLES.name -> {
-            ToolbarTitle(currentComponentName.orEmpty(), modifier)
-        }
-
-        currentRoute == CurrentScreen.COMPONENT_DETAIL.name -> {
-            val styleName = currentComponentStyleName?.let { "[$it]" }.orEmpty()
-            ToolbarTitle(
-                string = "${currentComponentName.orEmpty()} $styleName",
-                modifier = modifier,
-            )
-        }
-    }
-}
-
-
-@Composable
-public fun ToolbarTitle(
-    string: String,
-    modifier: Modifier,
-) {
-    val lineCount = remember { mutableStateOf(0) }
-
-    Text(
-        text = string,
-        modifier = modifier.semantics {
-            lineCountVal = lineCount.value
-        },
-        maxLines = 3,
-        overflow = TextOverflow.Ellipsis,
-        onTextLayout = {
-            lineCount.value = it.lineCount
-        },
-    )
-}
-
-@Composable
-internal fun SearchField(
-    searchQuery: String?,
-    searchQueryValueChange: (String) -> Unit,
-    onCloseSearchFieldClick: () -> Unit,
-    onClearSearchField: () -> Unit,
-) {
-    TextField(
-        value = searchQuery.orEmpty(),
-        // Update value of textValue with the latest value of the text field
-        onValueChange = searchQueryValueChange,
-        label = LocalContext.current.getString(R.string.search_label),
-        modifier = Modifier
-            .testTag("SearchTextField")
-            .fillMaxWidth(),
-        leadingIcon = {
-            IconButton(
-                onClick = onCloseSearchFieldClick,
-                modifier = Modifier.testTag("close_search_bar_tag"),
-            ) {
-                Icon(sparkIcon = SparkIcon.Actions.Search, contentDescription = "Search Icon")
-            }
-        },
-        trailingIcon = {
-            IconButton(
-                onClick = onClearSearchField,
-                modifier = Modifier.testTag("clear_search_field"),
-                enabled = !searchQuery.isNullOrEmpty(),
-            ) {
-                Icon(sparkIcon = SparkIcon.Arrows.Close.Full, contentDescription = "Clear Search Field")
-            }
-        },
-    )
-}
-
-@Composable
-private fun ShowkaseAppBarActions(
-    metadata: MutableState<ShowkaseBrowserScreenMetadata>,
-    currentRoute: String?,
-    modifier: Modifier = Modifier,
-    onThemeClick: () -> Unit = {},
-) {
-    Row {
-
-        when {
-            metadata.value.isSearchActive -> {
-            }
-
-            currentRoute == CurrentScreen.COMPONENT_DETAIL.name -> {
-            }
-
-            else -> {
-                IconButton(
-                    modifier = modifier.testTag("SearchIcon"),
-                    onClick = {
-                        metadata.value = metadata.value.copy(isSearchActive = true)
-                    },
-                ) {
-                    Icon(sparkIcon = SparkIcon.Actions.Search, contentDescription = "Search Icon")
-                }
-                IconButton(onClick = onThemeClick) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_palette_24dp),
-                        contentDescription = null,
+                frontLayerContent = {
+                    val insetsPadding = WindowInsets.navigationBars.asPaddingValues()
+                    val innerPadding = PaddingValues(
+                        top = 16.dp + insetsPadding.calculateTopPadding(),
+                        end = insetsPadding.calculateEndPadding(LocalLayoutDirection.current),
+                        bottom = insetsPadding.calculateBottomPadding(),
+                        start = insetsPadding.calculateStartPadding(LocalLayoutDirection.current),
                     )
-                }
-            }
+                    HorizontalPager(
+                        pageCount = homeScreenValues.size,
+                        state = pagerState,
+                    ) {
+                        when (homeScreenValues[it]) {
+                            CatalogHomeScreen.Exemples -> ComponentsScreen(
+                                components = components,
+                                contentPadding = innerPadding,
+                            )
+
+                            CatalogHomeScreen.Showkase -> {
+                                BodyContent(
+                                    contentPadding = innerPadding,
+                                    groupedComponentMap = groupedComponentMap,
+                                    showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
+                                )
+                            }
+
+                            CatalogHomeScreen.Configurator -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.TopCenter,
+                                ) {
+                                    Text(
+                                        text = "The configurator will come in the future, it'll allow you to display a " +
+                                                "component and set the properties that a developer use to se how the" +
+                                                " component behave",
+                                        modifier = Modifier
+                                            .padding(horizontal = 16.dp, vertical = 32.dp)
+                                            .padding(innerPadding),
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+            )
         }
+    }
+}
+
+@Composable
+private fun HomeTabBar(
+    tabSelected: CatalogHomeScreen,
+    onTabSelected: (CatalogHomeScreen) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CatalogTabBar(
+        modifier = modifier
+            .wrapContentWidth()
+            .sizeIn(maxWidth = 500.dp),
+    ) { tabBarModifier ->
+        CatalogTabs(
+            modifier = tabBarModifier,
+            titles = CatalogHomeScreen.values().map { it.name },
+            tabSelected = tabSelected,
+            onTabSelected = { newTab -> onTabSelected(CatalogHomeScreen.values()[newTab.ordinal]) },
+        )
     }
 }
 
@@ -393,11 +236,11 @@ private fun ShowkaseAppBarActions(
 internal fun BodyContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues,
-    navController: NavHostController,
-    components: List<Component>,
     groupedComponentMap: Map<String, List<ShowkaseBrowserComponent>>,
     showkaseBrowserScreenMetadata: MutableState<ShowkaseBrowserScreenMetadata>,
 ) {
+    val navController = rememberNavController()
+
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -407,100 +250,17 @@ internal fun BodyContent(
                 navController = navController,
                 contentPadding = contentPadding,
                 showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
-                components = components,
                 groupedComponentMap = groupedComponentMap,
             )
         },
     )
 }
 
-private fun NavGraphBuilder.navGraph(
-    navController: NavHostController,
-    components: List<Component>,
-    groupedComponentMap: Map<String, List<ShowkaseBrowserComponent>>,
-    contentPadding: PaddingValues,
-    showkaseBrowserScreenMetadata: MutableState<ShowkaseBrowserScreenMetadata>,
-) {
-    composable(
-        route = HomeRoute,
-    ) {
-        HomeScreen(
-            groupedComponentMap = groupedComponentMap,
-            showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
-            components = components,
-            contentPadding = contentPadding,
-            navController = navController,
-        )
-    }
-    composable(CurrentScreen.COMPONENTS_IN_A_GROUP.name) {
-        ShowkaseComponentsInAGroupScreen(
-            groupedComponentMap = groupedComponentMap,
-            showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
-            navController = navController,
-            contentPadding = contentPadding,
-        )
-    }
-    composable(CurrentScreen.COMPONENT_DETAIL.name) {
-        ComponentDetailScreen(
-            groupedComponentMap = groupedComponentMap,
-            showkaseBrowserScreenMetadata = showkaseBrowserScreenMetadata,
-            navController = navController,
-            contentPadding = contentPadding,
-        )
-    }
-
-    composable(
-        route = "$ComponentRoute/" +
-                "{$ComponentIdArgName}",
-        arguments = listOf(
-            navArgument(ComponentIdArgName) { type = NavType.IntType },
-        ),
-    ) { navBackStackEntry ->
-        val arguments = requireNotNull(navBackStackEntry.arguments) { "No arguments" }
-        val componentId = arguments.getInt(ComponentIdArgName)
-        val component = components.first { component -> component.id == componentId }
-        Component(
-            component = component,
-            contentPadding = contentPadding,
-            onExampleClick = { example ->
-                val exampleIndex = component.examples.indexOf(example)
-                val route = "$ExampleRoute/$componentId/$exampleIndex"
-                navController.navigate(route)
-            },
-//            onBackClick = { navController.popBackStack() },
-        )
-    }
-    composable(
-        route = "$ExampleRoute/" +
-                "{$ComponentIdArgName}/" +
-                "{$ExampleIndexArgName}",
-        arguments = listOf(
-            navArgument(ComponentIdArgName) { type = NavType.IntType },
-            navArgument(ExampleIndexArgName) { type = NavType.IntType },
-        ),
-    ) { navBackStackEntry ->
-        val arguments = requireNotNull(navBackStackEntry.arguments) { "No arguments" }
-        val componentId = arguments.getInt(ComponentIdArgName)
-        val exampleIndex = arguments.getInt(ExampleIndexArgName)
-        val component = components.first { component -> component.id == componentId }
-        val example = component.examples[exampleIndex]
-        Example(
-            contentPadding = contentPadding,
-            example = example,
-        )
-    }
-}
-
-/**
- * Helper function to navigate to the passed [CurrentScreen]
- */
-internal fun NavHostController.navigate(destinationScreen: CurrentScreen) = navigate(destinationScreen.name)
-
 private val SheetScrimColor = Color.Black.copy(alpha = 0.4f)
 
-private const val HomeRoute = "home"
-internal const val ComponentRoute = "component"
-private const val ExampleRoute = "example"
-private const val ComponentIdArgName = "componentId"
-private const val ExampleIndexArgName = "exampleIndex"
+internal const val HomeRoute = "home"
+
+public enum class CatalogHomeScreen {
+    Exemples, Showkase, Configurator
+}
 

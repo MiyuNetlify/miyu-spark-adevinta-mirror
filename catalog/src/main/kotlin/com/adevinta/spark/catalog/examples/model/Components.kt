@@ -20,27 +20,39 @@
  * SOFTWARE.
  */
 
-@file:Suppress("COMPOSABLE_FUNCTION_REFERENCE")
+package com.adevinta.spark.catalog.examples.model
 
-package com.adevinta.spark.catalog.model
+import com.adevinta.spark.catalog.util.ComponentGuidelinesUrl
+import com.adevinta.spark.catalog.util.PackageSummaryUrl
+import com.adevinta.spark.catalog.util.SparkSourceUrl
 
-import androidx.compose.runtime.Composable
-import com.adevinta.spark.catalog.util.SampleSourceUrl
-import com.adevinta.spark.samples.components.ButtonSample
-
-public data class Example(
+public data class Component(
+    val id: Int,
     val name: String,
     val description: String,
+    val tintIcon: Boolean = true,
+    val guidelinesUrl: String,
+    val docsUrl: String,
     val sourceUrl: String,
-    val content: @Composable () -> Unit,
+    val examples: List<Example>,
 )
 
-private const val ButtonsExampleDescription = "Button examples"
-private const val ButtonsExampleSourceUrl = "$SampleSourceUrl/ButtonSamples.kt"
-public val ButtonsExamples: List<Example> = listOf(
-    Example(
-        name = ::ButtonSample.name,
-        description = ButtonsExampleDescription,
-        sourceUrl = ButtonsExampleSourceUrl,
-    ) { ButtonSample() },
+private var nextId: Int = 1
+private fun nextId(): Int = nextId.also { nextId += 1 }
+
+private val Buttons = Component(
+    id = nextId(),
+    name = "Buttons",
+    description = "Buttons help people initiate actions, from sending an email, to sharing a " +
+            "document, to liking a post.",
+    // No buttons icon
+    guidelinesUrl = "$ComponentGuidelinesUrl/buttons",
+    docsUrl = "$PackageSummaryUrl/com.adevinta.spark.components.buttons/-button-filled.html",
+    sourceUrl = "$SparkSourceUrl/Button.kt",
+    examples = ButtonsExamples,
+)
+
+/** Components for the catalog, ordered alphabetically by name. */
+public val Components: List<Component> = listOf(
+    Buttons,
 )

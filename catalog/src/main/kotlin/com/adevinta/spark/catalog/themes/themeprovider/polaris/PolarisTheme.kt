@@ -22,7 +22,6 @@
 
 package com.adevinta.spark.catalog.themes.themeprovider.polaris
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import com.adevinta.spark.catalog.themes.themeprovider.ThemeProvider
 import com.adevinta.spark.tokens.SparkColors
@@ -37,7 +36,7 @@ public object PolarisTheme : ThemeProvider {
     @Composable
     override fun colors(useDarkColors: Boolean, isPro: Boolean, isLegacy: Boolean): SparkColors {
         return when {
-            useDarkColors || isSystemInDarkTheme() -> darkSparkColors()
+            useDarkColors -> darkSparkColors()
             else -> lightSparkColors()
         }
     }

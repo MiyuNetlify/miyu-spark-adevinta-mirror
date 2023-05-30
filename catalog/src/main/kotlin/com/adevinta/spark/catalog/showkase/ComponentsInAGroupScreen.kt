@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.adevinta.spark.catalog
+package com.adevinta.spark.catalog.showkase
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -60,7 +61,9 @@ internal fun ShowkaseComponentsInAGroupScreen(
     }
     val filteredList = getFilteredSearchList(componentList, showkaseBrowserScreenMetadata)
     LazyColumn(
-        modifier = Modifier.consumeWindowInsets(contentPadding),
+        modifier = Modifier
+            .fillMaxSize()
+            .consumeWindowInsets(contentPadding),
         contentPadding = PaddingValues(
             start = Layout.bodyMargin / 2 + contentPadding.calculateLeftPadding(LocalLayoutDirection.current),
             end = Layout.bodyMargin / 2 + contentPadding.calculateRightPadding(LocalLayoutDirection.current),

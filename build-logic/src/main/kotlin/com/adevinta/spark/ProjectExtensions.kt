@@ -33,6 +33,7 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinTopLevelExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -64,7 +65,7 @@ internal fun Project.configureKotlinCompiler(
 ) = tasks.withType<KotlinCompile> {
     compilerOptions {
         this.allWarningsAsErrors.set(allWarningsAsErrors)
-        freeCompilerArgs.add("-Xexplicit-api=strict")
+        freeCompilerArgs.add(ExplicitApiMode.Strict.toCompilerArg())
         configure()
     }
 }
